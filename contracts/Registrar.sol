@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "@ensdomains/dnssec-oracle/contracts/DNSSECImpl.sol";
 
-contract Optimist {
+contract Registrar {
 
     /// label => proof
     mapping (bytes32 => bytes) proofs;
