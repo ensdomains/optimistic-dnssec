@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "@ensdomains/dnssec-oracle/contracts/DNSSECImpl";
+import "@ensdomains/dnssec-oracle/contracts/DNSSECImpl.sol";
 
 contract Optimist {
 
