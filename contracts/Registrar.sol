@@ -59,7 +59,7 @@ contract Registrar {
     function commit(bytes32 node) external {
         Record storage record = records[node];
 
-        require(record.submitted + cooldown > now);
+        require(record.submitted + cooldown <= now);
 
         bytes32 node = record.node;
         bytes32 label = record.label;
@@ -77,7 +77,7 @@ contract Registrar {
     function challenge(bytes32 node) external {
         Record storage record = records[node];
 
-        require(record.submitted + cooldown <= now);
+        require(record.submitted + cooldown > now);
 
         // @todo verify
 
