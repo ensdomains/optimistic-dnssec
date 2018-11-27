@@ -4,23 +4,65 @@ import "@ensdomains/dnssec-oracle/contracts/DNSSECImpl.sol";
 
 contract Registrar {
 
-    /// label => proof
-    mapping (bytes32 => bytes) proofs;
+    struct Record {
+        address submitter;
+        address addr;
+        bytes proof;
+        bytes name;
+        bytes32 label;
+        bytes32 node;
+        uint256 submitted;
+    }
 
+    uint256 public cooldown;
+    uint256 public deposit;
+
+    /// label => record
+    mapping (bytes32 => Record) public records;
+
+    event Submitted(bytes32 indexed node, address indexed owner, bytes dnsname);
     event Claim(bytes32 indexed node, address indexed owner, bytes dnsname);
 
+    constructor(uint256 _cooldown, uint256 _deposit) public {
+        cooldown = _cooldown;
+        deposit = _deposit;
+    }
+
     /// @notice This function allows the user to submit a DNSSEC proof for a certain amount of ETH.
-    function commit(bytes name, bytes proof, address addr) public payable {
-        require(msg.value == 1 ether);
-//        address addr = getOwnerAddress(name, proof);
+    function submit(bytes name, bytes proof, address addr) external payable {
+        require(msg.value == deposit);
 
         bytes32 labelHash;
         bytes32 rootNode;
-        (labelHash, rootNode) = getLabels(name);
+        (label, node) = getLabels(name);
 
-        ens.setSubnodeOwner(rootNode, labelHash, addr);
-        proofs[labelHash] = proof;
-        emit Claim(keccak256(abi.encodePacked(rootNode, labelHash)), addr, name);
+        proofs[keccak256(node, label)] = Record({
+            submitter: msg.sender,
+            addr: addr,
+            proof: proof,
+            name: name,
+            label: label,
+            node: node,
+            submitted: now
+        });
+
+        emit Submitted(keccak256(abi.encodePacked(rootNode, labelHash)), addr, name);
+    }
+
+    // @notice This function commits a Record to the ENS registry.
+    function commit(bytes32 node) external {
+        Record storage record = records[node];
+
+        require(record.submitted + cooldown >= now);
+
+        bytes32 node = record.node;
+        bytes32 label = record.label;
+        bytes32 addr = record.addr;
+
+        ens.setSubnodeOwner(node, label, addr);
+        record.submitter.transfer(deposit);
+
+        emit Claim(keccak256(abi.encodePacked(node, label)), addr, record.name);
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
