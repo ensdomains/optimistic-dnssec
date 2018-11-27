@@ -59,7 +59,7 @@ contract Registrar {
     function commit(bytes32 node) external {
         Record storage record = records[node];
 
-        require(record.submitted + cooldown >= now);
+        require(record.submitted + cooldown > now);
 
         bytes32 node = record.node;
         bytes32 label = record.label;
@@ -74,11 +74,14 @@ contract Registrar {
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
-    function challenge(bytes32 labelHash) external {
+    function challenge(bytes32 node) external {
+        Record storage record = records[node];
+
+        require(record.submitted + cooldown <= now);
 
         // @todo verify
 
-        ens.setSubnodeOwner(rootNode, labelHash, 0x0);
+        delete record[node];
     }
 
     function getLabels(bytes memory name) internal view returns (bytes32, bytes32) {
