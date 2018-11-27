@@ -32,8 +32,8 @@ contract Registrar {
     function submit(bytes name, bytes proof, address addr) external payable {
         require(msg.value == deposit);
 
-        bytes32 labelHash;
-        bytes32 rootNode;
+        bytes32 label;
+        bytes32 node;
         (label, node) = getLabels(name);
 
         proofs[keccak256(node, label)] = Record({
