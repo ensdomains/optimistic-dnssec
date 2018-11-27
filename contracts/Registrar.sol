@@ -59,6 +59,8 @@ contract Registrar {
         bytes32 label = record.label;
         bytes32 addr = record.addr;
 
+        require(addr != address(0x0));
+
         ens.setSubnodeOwner(node, label, addr);
         record.submitter.transfer(deposit);
 
