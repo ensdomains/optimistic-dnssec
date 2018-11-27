@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "@ensdomains/dnssec-oracle/contracts/DNSSECImpl.sol";
+import "@ensdomains/ENS/contracts/ENS.sol";
+import "@ensdomains/dnssec-oracle/contracts/DNSSEC.sol";
 
 contract Registrar {
 
@@ -14,6 +15,9 @@ contract Registrar {
         uint256 submitted;
     }
 
+    ENS public ens;
+    DNSSEC public dnssec;
+
     uint256 public cooldown;
     uint256 public deposit;
 
@@ -23,7 +27,9 @@ contract Registrar {
     event Submitted(bytes32 indexed node, address indexed owner, bytes dnsname);
     event Claim(bytes32 indexed node, address indexed owner, bytes dnsname);
 
-    constructor(uint256 _cooldown, uint256 _deposit) public {
+    constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _deposit) public {
+        ens = _ens;
+        dnssec = _dnssec;
         cooldown = _cooldown;
         deposit = _deposit;
     }
