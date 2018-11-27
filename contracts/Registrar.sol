@@ -21,8 +21,11 @@ contract Registrar {
         uint256 submitted;
     }
 
+    uint16 constant CLASS_INET = 1;
+    uint16 constant TYPE_TXT = 16;
+
     ENS public ens;
-    DNSSEC public dnssec;
+    DNSSEC public oracle;
 
     uint256 public cooldown;
     uint256 public deposit;
@@ -35,7 +38,7 @@ contract Registrar {
 
     constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _deposit) public {
         ens = _ens;
-        dnssec = _dnssec;
+        oracle = _dnssec;
         cooldown = _cooldown;
         deposit = _deposit;
     }
@@ -48,7 +51,7 @@ contract Registrar {
         bytes32 node;
         (label, node) = getLabels(name);
 
-        proofs[keccak256(node, label)] = Record({
+        records[keccak256(node, label)] = Record({
             submitter: msg.sender,
             addr: addr,
             proof: proof,
@@ -58,7 +61,7 @@ contract Registrar {
             submitted: now
         });
 
-        emit Submitted(keccak256(abi.encodePacked(rootNode, labelHash)), addr, name);
+        emit Submitted(keccak256(abi.encodePacked(node, label)), addr, name);
     }
 
     // @notice This function commits a Record to the ENS registry.
@@ -67,16 +70,16 @@ contract Registrar {
 
         require(record.submitted + cooldown <= now);
 
-        bytes32 node = record.node;
+        bytes32 rootNode = record.node;
         bytes32 label = record.label;
-        bytes32 addr = record.addr;
+        address addr = record.addr;
 
         require(addr != address(0x0));
 
-        ens.setSubnodeOwner(node, label, addr);
+        ens.setSubnodeOwner(rootNode, label, addr);
         record.submitter.transfer(deposit);
 
-        emit Claim(keccak256(abi.encodePacked(node, label)), addr, record.name);
+        emit Claim(keccak256(abi.encodePacked(rootNode, label)), addr, record.name);
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
@@ -87,7 +90,7 @@ contract Registrar {
 
         require(record.addr != getOwnerAddress(record.name, record.proof));
 
-        delete record[node];
+        delete records[node];
     }
 
     function getLabels(bytes memory name) internal view returns (bytes32, bytes32) {
