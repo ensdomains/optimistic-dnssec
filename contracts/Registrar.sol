@@ -5,7 +5,7 @@ import "./AbstractRegistrar.sol";
 contract Registrar is AbstractRegistrar {
 
     function submit(bytes name, bytes proof, address addr) external payable {
-        require(msg.value == deposit);
+        require(msg.value == stake);
         AbstractRegistrar._submit(name, proof, addr);
     }
 
@@ -13,7 +13,7 @@ contract Registrar is AbstractRegistrar {
         AbstractRegistrar._commit(node);
 
         Record storage record = records[node];
-        record.submitter.transfer(deposit);
+        record.submitter.transfer(stake);
     }
 
     function challenge(bytes32 node, bytes proof, bytes name) external {

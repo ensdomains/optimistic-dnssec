@@ -27,7 +27,7 @@ contract AbstractRegistrar {
     DNSSEC public oracle;
 
     uint256 public cooldown;
-    uint256 public deposit;
+    uint256 public stake;
 
     /// label => record
     mapping (bytes32 => Record) public records;
@@ -36,11 +36,11 @@ contract AbstractRegistrar {
     event Claim(bytes32 indexed node, address indexed owner);
     event Challenged(bytes32 indexed node, address indexed challenger);
 
-    constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _deposit) public {
+    constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _stake) public {
         ens = _ens;
         oracle = _dnssec;
         cooldown = _cooldown;
-        deposit = _deposit;
+        stake = _stake;
     }
 
     /// @notice This function allows the user to submit a DNSSEC proof for a certain amount of ETH.
@@ -91,7 +91,7 @@ contract AbstractRegistrar {
         require(record.addr != DNSClaimChecker.getOwnerAddress(oracle, name, proof));
 
         delete records[node];
-        msg.sender.transfer(deposit);
+        msg.sender.transfer(stake);
 
         emit Challenged(node, msg.sender);
     }

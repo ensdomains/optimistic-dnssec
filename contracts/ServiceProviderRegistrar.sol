@@ -28,8 +28,8 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
     function submit(bytes name, bytes proof, address addr) external payable {
         Balance storage balance = balances[msg.sender];
 
-        require(balance.staked - balance.locked >= deposit);
-        balance.locked = balance.locked + deposit;
+        require(balance.staked - balance.locked >= stake);
+        balance.locked = balance.locked + stake;
 
         AbstractRegistrar._submit(name, proof, addr);
     }
@@ -40,7 +40,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         Record storage record = records[node];
 
         Balance storage balance = balances[record.submitter];
-        balance.locked = balance.locked - deposit;
+        balance.locked = balance.locked - stake;
     }
 
     function challenge(bytes32 node, bytes proof, bytes name) external {
@@ -49,7 +49,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         Record storage record = records[node];
 
         Balance storage balance = balances[record.submitter];
-        balance.locked = balance.locked - deposit;
-        balance.staked = balance.staked - deposit;
+        balance.locked = balance.locked - stake;
+        balance.staked = balance.staked - stake;
     }
 }
