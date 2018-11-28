@@ -12,8 +12,8 @@ contract Registrar {
     struct Record {
         address submitter;
         address addr;
-        bytes proof;
-        bytes name;
+        bytes32 proof;
+        bytes32 name;
         bytes32 label;
         bytes32 node;
         uint256 submitted;
@@ -31,8 +31,8 @@ contract Registrar {
     /// label => record
     mapping (bytes32 => Record) public records;
 
-    event Submitted(bytes32 indexed node, address indexed owner, bytes dnsname);
-    event Claim(bytes32 indexed node, address indexed owner, bytes dnsname);
+    event Submitted(bytes32 indexed node, address indexed owner, bytes proof, bytes dnsname);
+    event Claim(bytes32 indexed node, address indexed owner);
 
     constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _deposit) public {
         ens = _ens;
@@ -52,14 +52,14 @@ contract Registrar {
         records[keccak256(node, label)] = Record({
             submitter: msg.sender,
             addr: addr,
-            proof: proof,
-            name: name,
+            proof: keccak256(proof),
+            name: keccak256(name),
             label: label,
             node: node,
             submitted: now
         });
 
-        emit Submitted(keccak256(abi.encodePacked(node, label)), addr, name);
+        emit Submitted(keccak256(abi.encodePacked(node, label)), addr, proof, name);
     }
 
     // @notice This function commits a Record to the ENS registry.
@@ -77,14 +77,17 @@ contract Registrar {
         ens.setSubnodeOwner(rootNode, label, addr);
         record.submitter.transfer(deposit);
 
-        emit Claim(keccak256(abi.encodePacked(rootNode, label)), addr, record.name);
+        emit Claim(keccak256(abi.encodePacked(rootNode, label)), addr);
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
-    function challenge(bytes32 node) external {
+    function challenge(bytes32 node, bytes proof, bytes name) external {
         Record storage record = records[node];
 
         require(record.submitted + cooldown > now);
+
+        require(record.proof == keccak256(proof));
+        require(record.name == keccak256(name));
 
         require(record.addr != DNSClaimChecker.getOwnerAddress(oracle, record.name, record.proof));
 
