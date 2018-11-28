@@ -22,15 +22,15 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         balance.staked = balance.staked - amount;
         msg.sender.transfer(amount);
 
-        // @todo amount
+        // @todo event
     }
 
     function submit(bytes name, bytes proof, address addr) external payable {
         Balance storage balance = balances[msg.sender];
 
         require(balance.staked - balance.locked >= deposit);
-
         balance.locked = balance.locked + deposit;
+
         AbstractRegistrar._submit(name, proof, addr);
     }
 
