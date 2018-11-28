@@ -5,7 +5,6 @@ import "@ensdomains/dnssec-oracle/contracts/DNSSEC.sol";
 import "@ensdomains/dnssec-oracle/contracts/BytesUtils.sol";
 import "@ensdomains/dnsregistrar/contracts/DNSClaimChecker.sol";
 
-
 contract AbstractRegistrar {
 
     using BytesUtils for bytes;
