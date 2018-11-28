@@ -16,7 +16,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
     }
 
     function withdraw(uint256 amount) external {
-        require(availableFunds(msg.sender) >= amount);
+        require(withdrawable(msg.sender) >= amount);
 
         balances[msg.sender].staked -= amount;
         msg.sender.transfer(amount);
@@ -25,7 +25,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
     }
 
     function submit(bytes name, bytes proof, address addr) external payable {
-        require(availableFunds(msg.sender) >= stake);
+        require(withdrawable(msg.sender) >= stake);
         balances[msg.sender].locked -= stake;
 
         AbstractRegistrar._submit(name, proof, addr);
@@ -45,7 +45,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         balance.staked = balance.staked - stake;
     }
 
-    function availableFunds(address provider) public returns (uint) {
+    function withdrawable(address provider) public returns (uint) {
         Balance storage balance = balances[provider];
         return (balance.staked - balance.locked);
     }
