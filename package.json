@@ -9,7 +9,8 @@
     "truffle": "^4.1.12",
     "@ensdomains/dnssec-oracle": "^0.0.7",
     "@ensdomains/ens": "^0.1.1",
-    "@ensdomains/buffer": "^0.0.5"
+    "@ensdomains/buffer": "^0.0.5",
+    "@ensdomains/dnsregistrar": "^0.1.1"
   },
   "scripts": {
     "pretest": "truffle compile",
