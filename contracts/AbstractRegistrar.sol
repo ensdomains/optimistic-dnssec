@@ -11,7 +11,7 @@ contract AbstractRegistrar {
 
     struct Record {
         address submitter;
-        address addr;
+        address newOwner;
         bytes32 proof;
         bytes32 name;
         bytes32 label;
@@ -43,14 +43,14 @@ contract AbstractRegistrar {
     }
 
     /// @notice This function allows the user to submit a DNSSEC proof for a certain amount of ETH.
-    function _submit(bytes name, bytes proof, address addr) internal {
+    function _submit(bytes name, bytes proof, address newOwner) internal {
         bytes32 label;
         bytes32 node;
         (label, node) = DNSClaimChecker.getLabels(name);
 
         records[keccak256(node, label)] = Record({
             submitter: msg.sender,
-            addr: addr,
+            newOwner: newOwner,
             proof: keccak256(proof),
             name: keccak256(name),
             label: label,
@@ -58,7 +58,7 @@ contract AbstractRegistrar {
             submitted: now
         });
 
-        emit Submitted(keccak256(abi.encodePacked(node, label)), addr, proof, name);
+        emit Submitted(keccak256(abi.encodePacked(node, label)), newOwner, proof, name);
     }
 
     // @notice This function commits a Record to the ENS registry.
@@ -69,13 +69,13 @@ contract AbstractRegistrar {
 
         bytes32 rootNode = record.node;
         bytes32 label = record.label;
-        address addr = record.addr;
+        address newOwner = record.newOwner;
 
-        require(addr != address(0x0));
+        require(newOwner != address(0x0));
 
-        ens.setSubnodeOwner(rootNode, label, addr);
+        ens.setSubnodeOwner(rootNode, label, newOwner);
 
-        emit Claim(keccak256(abi.encodePacked(rootNode, label)), addr);
+        emit Claim(keccak256(abi.encodePacked(rootNode, label)), newOwner);
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
@@ -87,7 +87,7 @@ contract AbstractRegistrar {
         require(record.proof == keccak256(proof));
         require(record.name == keccak256(name));
 
-        require(record.addr != DNSClaimChecker.getOwnerAddress(oracle, name, proof));
+        require(record.newOwner != DNSClaimChecker.getOwnerAddress(oracle, name, proof));
 
         delete records[node];
         msg.sender.transfer(stake);
