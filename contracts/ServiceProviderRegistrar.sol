@@ -11,17 +11,21 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
 
     mapping (address => Balance) public balances;
 
+    event Staked(address indexed staker, uint256 amount);
+    event Unstaked(address indexed staker, uint256 amount);
+
     function () external payable {
         balances[msg.sender].staked += msg.value;
+        emit Staked(msg.sender, msg.value);
     }
 
-    function withdraw(uint256 amount) external {
+    function unstake(uint256 amount) external {
         require(withdrawable(msg.sender) >= amount);
 
         balances[msg.sender].staked -= amount;
         msg.sender.transfer(amount);
 
-        // @todo event
+        emit Unstaked(msg.sender, amount);
     }
 
     function submit(bytes name, bytes proof, address addr) external payable {
