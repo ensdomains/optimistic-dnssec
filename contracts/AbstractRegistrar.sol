@@ -65,8 +65,8 @@ contract AbstractRegistrar {
         bytes32 node;
         (label, node) = DNSClaimChecker.getLabels(name);
 
-        bytes32 domain = keccak256(abi.encodePacked(node, label));
-        Record storage record = records[domain];
+        bytes32 namehash = keccak256(abi.encodePacked(node, label));
+        Record storage record = records[namehash];
 
         require(record.submitted + cooldown <= now);
 
@@ -76,9 +76,9 @@ contract AbstractRegistrar {
 
         ens.setSubnodeOwner(node, label, newOwner);
 
-        emit Claim(domain, newOwner);
+        emit Claim(namehash, newOwner);
 
-        return domain;
+        return namehash;
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
