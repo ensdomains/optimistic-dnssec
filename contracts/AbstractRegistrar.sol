@@ -46,7 +46,9 @@ contract AbstractRegistrar {
         bytes32 node;
         (label, node) = DNSClaimChecker.getLabels(name);
 
-        records[keccak256(node, label)] = Record({
+        bytes32 namehash = keccak256(abi.encodePacked(node, label));
+
+        records[namehash] = Record({
             submitter: msg.sender,
             newOwner: newOwner,
             proof: keccak256(proof),
@@ -54,7 +56,7 @@ contract AbstractRegistrar {
             submitted: now
         });
 
-        emit Submitted(keccak256(abi.encodePacked(node, label)), newOwner, proof, name);
+        emit Submitted(namehash, newOwner, proof, name);
     }
 
     // @notice This function commits a Record to the ENS registry.
