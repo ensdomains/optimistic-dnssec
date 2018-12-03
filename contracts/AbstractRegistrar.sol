@@ -66,14 +66,12 @@ contract AbstractRegistrar {
         (label, node) = DNSClaimChecker.getLabels(name);
 
         bytes32 namehash = keccak256(abi.encodePacked(node, label));
-        Record storage record = records[namehash];
 
+        Record storage record = records[namehash];
         require(record.submitted + cooldown <= now);
 
         address newOwner = record.newOwner;
-
         require(newOwner != address(0x0));
-
         ens.setSubnodeOwner(node, label, newOwner);
 
         emit Claim(namehash, newOwner);
