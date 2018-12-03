@@ -14,8 +14,6 @@ contract AbstractRegistrar {
         address newOwner;
         bytes32 proof;
         bytes32 name;
-        bytes32 label;
-        bytes32 node;
         uint256 submitted;
     }
 
@@ -53,8 +51,6 @@ contract AbstractRegistrar {
             newOwner: newOwner,
             proof: keccak256(proof),
             name: keccak256(name),
-            label: label,
-            node: node,
             submitted: now
         });
 
@@ -62,20 +58,25 @@ contract AbstractRegistrar {
     }
 
     // @notice This function commits a Record to the ENS registry.
-    function _commit(bytes32 node) internal {
-        Record storage record = records[node];
+    function _commit(bytes name) internal returns (bytes32) {
+        bytes32 label;
+        bytes32 node;
+        (label, node) = DNSClaimChecker.getLabels(name);
+
+        bytes32 domain = keccak256(abi.encodePacked(node, label));
+        Record storage record = records[domain];
 
         require(record.submitted + cooldown <= now);
 
-        bytes32 rootNode = record.node;
-        bytes32 label = record.label;
         address newOwner = record.newOwner;
 
         require(newOwner != address(0x0));
 
-        ens.setSubnodeOwner(rootNode, label, newOwner);
+        ens.setSubnodeOwner(node, label, newOwner);
 
-        emit Claim(keccak256(abi.encodePacked(rootNode, label)), newOwner);
+        emit Claim(domain, newOwner);
+
+        return domain;
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.

@@ -9,8 +9,8 @@ contract Registrar is AbstractRegistrar {
         AbstractRegistrar._submit(name, proof, addr);
     }
 
-    function commit(bytes32 node) external {
-        AbstractRegistrar._commit(node);
+    function commit(bytes name) external {
+        bytes32 node = AbstractRegistrar._commit(name);
 
         Record storage record = records[node];
         record.submitter.transfer(stake);
