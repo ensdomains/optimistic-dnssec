@@ -41,6 +41,13 @@ contract AbstractRegistrar {
     }
 
     /// @notice This function allows the user to submit a DNSSEC proof for a certain amount of ETH.
+    /// @param name The name to claim, in DNS wire format.
+    /// @param proof A DNS RRSet proving ownership of the name. Must be verified
+    ///        in the DNSSEC oracle before calling. This RRSET must contain a TXT
+    ///        record for '_ens.' + name, with the value 'a=0x...'. Ownership of
+    ///        the name will be transferred to the address specified in the TXT
+    ///        record.
+    /// @param newOwner The address of the domain owner found in the proof.
     function _submit(bytes name, bytes proof, address newOwner) internal {
         bytes32 label;
         bytes32 node;
@@ -59,7 +66,8 @@ contract AbstractRegistrar {
         emit Submitted(namehash, newOwner, proof, name);
     }
 
-    // @notice This function commits a Record to the ENS registry.
+    /// @notice This function commits a Record to the ENS registry.
+    /// @param name The name to claim, in DNS wire format.
     function _commit(bytes name) internal returns (bytes32) {
         bytes32 label;
         bytes32 node;
@@ -80,6 +88,13 @@ contract AbstractRegistrar {
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
+    /// @param node The node hash.
+    /// @param proof A DNS RRSet proving ownership of the name. Must be verified
+    ///        in the DNSSEC oracle before calling. This RRSET must contain a TXT
+    ///        record for '_ens.' + name, with the value 'a=0x...'. Ownership of
+    ///        the name will be transferred to the address specified in the TXT
+    ///        record.
+    /// @param name The name to claim, in DNS wire format.
     function _challenge(bytes32 node, bytes proof, bytes name) internal {
         Record storage record = records[node];
 
