@@ -10,11 +10,11 @@ contract AbstractRegistrar {
     using BytesUtils for bytes;
 
     struct Record {
-        address submitter;
-        address newOwner;
-        bytes32 proof;
-        bytes32 name;
-        uint256 submitted;
+        address submitter; // Submitter of the record
+        address newOwner; // The address of the domain owner found in the proof.
+        bytes32 proof; // Hash of the DNSSEC proof
+        bytes32 name; // Hash of the name to claim in DNS wire format.
+        uint256 submitted; // Time the record submitted.
     }
 
     uint16 constant CLASS_INET = 1;
