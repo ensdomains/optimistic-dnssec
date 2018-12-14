@@ -41,10 +41,10 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         balances[records[node].submitter].locked -= stake;
     }
 
-    function challenge(bytes32 node, bytes proof, bytes name) external {
-        AbstractRegistrar._challenge(node, proof, name);
+    function challenge(bytes name, bytes proof) external {
+        bytes32 namehash = AbstractRegistrar._challenge(name, proof);
 
-        Balance storage balance = balances[records[node].submitter];
+        Balance storage balance = balances[records[namehash].submitter];
         balance.locked = balance.locked - stake;
         balance.staked = balance.staked - stake;
     }

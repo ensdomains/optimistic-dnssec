@@ -16,7 +16,7 @@ contract Registrar is AbstractRegistrar {
         record.submitter.transfer(stake);
     }
 
-    function challenge(bytes32 node, bytes proof, bytes name) external {
-        AbstractRegistrar._challenge(node, proof, name);
+    function challenge(bytes name, bytes proof) external {
+        AbstractRegistrar._challenge(name, proof);
     }
 }

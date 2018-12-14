@@ -13,7 +13,6 @@ contract AbstractRegistrar {
         address submitter; // Submitter of the record
         address newOwner; // The address of the domain owner found in the proof.
         bytes32 proof; // Hash of the DNSSEC proof
-        bytes32 name; // Hash of the name to claim in DNS wire format.
         uint256 submitted; // Time the record submitted.
     }
 
@@ -59,7 +58,6 @@ contract AbstractRegistrar {
             submitter: msg.sender,
             newOwner: newOwner,
             proof: keccak256(proof),
-            name: keccak256(name),
             submitted: now
         });
 
@@ -88,26 +86,33 @@ contract AbstractRegistrar {
     }
 
     /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
-    /// @param node The node hash.
+    /// @param name The name to claim, in DNS wire format.
     /// @param proof A DNS RRSet proving ownership of the name. Must be verified
     ///        in the DNSSEC oracle before calling. This RRSET must contain a TXT
     ///        record for '_ens.' + name, with the value 'a=0x...'. Ownership of
     ///        the name will be transferred to the address specified in the TXT
     ///        record.
     /// @param name The name to claim, in DNS wire format.
-    function _challenge(bytes32 node, bytes proof, bytes name) internal {
-        Record storage record = records[node];
+    /// @return Namehash for the challenged domain.
+    function _challenge(bytes name, bytes proof) internal returns (bytes32) {
+        bytes32 label;
+        bytes32 node;
+        (label, node) = DNSClaimChecker.getLabels(name);
+
+        bytes32 namehash = keccak256(abi.encodePacked(node, label));
+
+        Record storage record = records[namehash];
 
         require(record.submitted + cooldown > now);
-
         require(record.proof == keccak256(proof));
-        require(record.name == keccak256(name));
 
         require(record.newOwner != DNSClaimChecker.getOwnerAddress(oracle, name, proof));
 
-        delete records[node];
+        delete records[namehash];
         msg.sender.transfer(stake);
 
-        emit Challenged(node, msg.sender);
+        emit Challenged(namehash, msg.sender);
+
+        return namehash;
     }
 }
