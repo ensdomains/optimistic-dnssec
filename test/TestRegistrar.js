@@ -4,6 +4,7 @@ const ENS = artifacts.require('./ENSRegistry.sol');
 
 const utils = require('./helpers/Utils.js');
 const namehash = require('eth-ens-namehash');
+const dns = require('../lib/dns.js');
 
 contract('Registrar', function(accounts) {
 
@@ -16,22 +17,25 @@ contract('Registrar', function(accounts) {
 
         ens = await ENS.new();
         dnssec = await DNSSEC.new();
-        registrar = await Registrar.new(ens.address, dnssec.address, stake, cooldown);
+        registrar = await Registrar.new(ens.address, dnssec.address, cooldown, stake);
 
-        await ens.setSubnodeOwner(0, web3.sha3('eth'), registrar.address, {from: accounts[0]});
-        await ens.setOwner(0, registrar.address);
+        await ens.setSubnodeOwner(0, web3.sha3('test'), registrar.address);
     });
 
     describe('submit', async () => {
 
         it('should fail to submit when not enough stake is sent', async () => {
             try {
-                await registrar.submit('0x0', '0x0', accounts[0], {value: stake});
+                await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[0], {value: stake / 2});
             } catch (error) {
                 return utils.ensureException(error);
             }
 
             assert.fail('did not fail');
+        });
+
+        it('should succeed when submitting with a valid stake and name', async () => {
+            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[0], {value: stake});
         });
 
     });
