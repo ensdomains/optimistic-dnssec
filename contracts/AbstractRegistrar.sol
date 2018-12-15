@@ -50,18 +50,18 @@ contract AbstractRegistrar {
     function _submit(bytes name, bytes proof, address newOwner) internal {
         bytes32 label;
         bytes32 node;
-//        (label, node) = DNSClaimChecker.getLabels(name);
-//
-//        bytes32 namehash = keccak256(abi.encodePacked(node, label));
-//
-//        records[namehash] = Record({
-//            submitter: msg.sender,
-//            newOwner: newOwner,
-//            proof: keccak256(proof),
-//            submitted: now
-//        });
-//
-//        emit Submitted(namehash, newOwner, proof, name);
+        (label, node) = DNSClaimChecker.getLabels(name);
+
+        bytes32 namehash = keccak256(abi.encodePacked(node, label));
+
+        records[namehash] = Record({
+            submitter: msg.sender,
+            newOwner: newOwner,
+            proof: keccak256(proof),
+            submitted: now
+        });
+
+        emit Submitted(namehash, newOwner, proof, name);
     }
 
     /// @notice This function commits a Record to the ENS registry.

@@ -35,7 +35,13 @@ contract('Registrar', function(accounts) {
         });
 
         it('should succeed when submitting with a valid stake and name', async () => {
-            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[0], {value: stake});
+            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[1], {value: stake});
+
+
+            let record = await registrar.records.call(namehash.hash('foo.test'));
+
+            assert.equal(record[0], accounts[0]);
+            assert.equal(record[1], accounts[1]);
         });
 
     });
