@@ -4,6 +4,10 @@ import "./AbstractRegistrar.sol";
 
 contract Registrar is AbstractRegistrar {
 
+    constructor(ENS ens, DNSSEC dnssec, uint256 cooldown, uint256 stake)
+        public
+        AbstractRegistrar(ens, dnssec, cooldown, stake) {}
+
     function submit(bytes name, bytes proof, address addr) external payable {
         require(msg.value == stake);
         AbstractRegistrar._submit(name, proof, addr);

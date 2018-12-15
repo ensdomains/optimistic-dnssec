@@ -10,6 +10,10 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
     event Staked(address indexed staker, uint256 amount);
     event Unstaked(address indexed staker, uint256 amount);
 
+    constructor(ENS ens, DNSSEC dnssec, uint256 cooldown, uint256 stake)
+        public
+        AbstractRegistrar(ens, dnssec, cooldown, stake) {}
+
     function () external payable {
         require(staked[msg.sender] = false);
         require(msg.value == stake);
