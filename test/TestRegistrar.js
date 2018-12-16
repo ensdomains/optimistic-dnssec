@@ -61,7 +61,7 @@ contract('Registrar', function(accounts) {
             assert.fail('did not fail');
         });
 
-        it('should fail to challenge when proofs do not match', async () => {
+        it('should fail to challenge when proofs do not match', async () => { // @todo this test is broken somewhere
             await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[1], {value: stake});
 
             try {
@@ -75,14 +75,26 @@ contract('Registrar', function(accounts) {
 
         // @todo should fail when proof is valid
 
-//        it('should successfully challenge when proof is invalid', async () => {
-//
-//            // @todo requires proper data
-//
-//            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[1], {value: stake});
-//
-//            await registrar.challenge(dns.hexEncodeName('foo.test.'), '0x0');
-//        });
+        it('should successfully challenge when proof is invalid', async () => {
+            let proof = dns.hexEncodeTXT({
+                name: '_ens.foo.test',
+                klass: 1,
+                ttl: 3600,
+                text: ['a=' + accounts[1]]
+            });
+
+            await dnssec.setData(
+                16,
+                dns.hexEncodeName('_ens.foo.test.'),
+                now,
+                now,
+                proof
+            );
+
+            await registrar.submit(dns.hexEncodeName('foo.test.'), proof, accounts[2], {value: stake});
+
+            await registrar.challenge(dns.hexEncodeName('foo.test.'), proof);
+        });
     });
 
     describe('commit', async () => {
