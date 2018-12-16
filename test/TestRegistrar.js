@@ -9,6 +9,8 @@ const dns = require('../lib/dns.js');
 contract('Registrar', function(accounts) {
 
     let registrar, dnssec, ens;
+
+    const now = Math.round(new Date().getTime() / 1000);
     const stake = 10;
     const cooldown = 3600;
 
@@ -47,6 +49,29 @@ contract('Registrar', function(accounts) {
 
     describe('challenge', async () => {
 
+        // NOTICE: DON'T MOVE THIS TEST. TIMING CHANGES IN OTHER TESTS WILL MESS UP RESULTS DUE TO TTL.
+        it('should successfully challenge when proof is invalid', async () => {
+            let proof = dns.hexEncodeTXT({
+                name: '_ens.foo.test',
+                klass: 1,
+                ttl: 3600,
+                text: ['a=' + accounts[1]]
+            });
+
+            await dnssec.setData(
+                16,
+                dns.hexEncodeName('_ens.foo.test.'),
+                now,
+                now,
+                proof
+            );
+
+            await registrar.submit(dns.hexEncodeName('foo.test.'), proof, accounts[2], {value: stake});
+            await registrar.challenge(dns.hexEncodeName('foo.test.'), proof);
+
+            // @todo validate stake transfer
+        });
+
         it('should fail to challenge when period has expired', async () => {
             await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[1], {value: stake});
 
@@ -74,27 +99,6 @@ contract('Registrar', function(accounts) {
         });
 
         // @todo should fail when proof is valid
-
-        it('should successfully challenge when proof is invalid', async () => {
-            let proof = dns.hexEncodeTXT({
-                name: '_ens.foo.test',
-                klass: 1,
-                ttl: 3600,
-                text: ['a=' + accounts[1]]
-            });
-
-            await dnssec.setData(
-                16,
-                dns.hexEncodeName('_ens.foo.test.'),
-                now,
-                now,
-                proof
-            );
-
-            await registrar.submit(dns.hexEncodeName('foo.test.'), proof, accounts[2], {value: stake});
-
-            await registrar.challenge(dns.hexEncodeName('foo.test.'), proof);
-        });
     });
 
     describe('commit', async () => {
