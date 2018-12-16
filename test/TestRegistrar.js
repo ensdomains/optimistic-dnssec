@@ -61,11 +61,11 @@ contract('Registrar', function(accounts) {
             assert.fail('did not fail');
         });
 
-        it('should fail to challenge when proofs do not match', async () => { // @todo this test is broken somewhere
-            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x0', accounts[1], {value: stake});
+        it('should fail to challenge when proofs do not match', async () => {
+            await registrar.submit(dns.hexEncodeName('foo.test.'), '0x01', accounts[1], {value: stake});
 
             try {
-                await registrar.challenge(dns.hexEncodeName('foo.test.'), '0x1');
+                await registrar.challenge(dns.hexEncodeName('foo.test.'), '0x02');
             } catch (error) {
                 return utils.ensureException(error);
             }
