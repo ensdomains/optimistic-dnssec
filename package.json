@@ -11,7 +11,8 @@
     "@ensdomains/ens": "^0.1.1",
     "@ensdomains/buffer": "^0.0.5",
     "@ensdomains/dnsregistrar": "^0.1.1",
-    "eth-ens-namehash": "^2.0.8"
+    "eth-ens-namehash": "^2.0.8",
+    "bluebird": "^3.5.2"
   },
   "scripts": {
     "pretest": "truffle compile",
