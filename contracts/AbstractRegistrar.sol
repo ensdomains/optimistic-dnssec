@@ -106,7 +106,9 @@ contract AbstractRegistrar {
         require(record.submitted + cooldown > now);
         require(record.proof == keccak256(proof));
 
-        require(record.newOwner != DNSClaimChecker.getOwnerAddress(oracle, name, proof));
+        address addr;
+        (addr,) = DNSClaimChecker.getOwnerAddress(oracle, name, proof);
+        require(record.newOwner != addr);
 
         delete records[namehash];
         msg.sender.transfer(stake);
