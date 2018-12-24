@@ -1,96 +1,27 @@
 pragma solidity ^0.4.24;
 
-import "@ensdomains/ENS/contracts/ENS.sol";
-import "@ensdomains/dnssec-oracle/contracts/DNSSEC.sol";
-import "@ensdomains/dnssec-oracle/contracts/BytesUtils.sol";
-import "@ensdomains/dnsregistrar/contracts/DNSClaimChecker.sol";
+import "./AbstractRegistrar.sol";
+import "./RegistrarInterface.sol";
 
-contract Registrar {
+contract Registrar is AbstractRegistrar, RegistrarInterface {
 
-    using BytesUtils for bytes;
+    constructor(ENS ens, DNSSEC dnssec, uint256 cooldown, uint256 stake)
+        public
+        AbstractRegistrar(ens, dnssec, cooldown, stake) {}
 
-    struct Record {
-        address submitter;
-        address newOwner;
-        bytes32 proof;
-        bytes32 name;
-        bytes32 label;
-        bytes32 node;
-        uint256 submitted;
+    function submit(bytes name, bytes proof, address addr) external payable {
+        require(msg.value == stake);
+        AbstractRegistrar._submit(name, proof, addr);
     }
 
-    uint16 constant CLASS_INET = 1;
-    uint16 constant TYPE_TXT = 16;
+    function commit(bytes name) external {
+        bytes32 node = AbstractRegistrar._commit(name);
 
-    ENS public ens;
-    DNSSEC public oracle;
-
-    uint256 public cooldown;
-    uint256 public deposit;
-
-    /// label => record
-    mapping (bytes32 => Record) public records;
-
-    event Submitted(bytes32 indexed node, address indexed owner, bytes proof, bytes dnsname);
-    event Claim(bytes32 indexed node, address indexed owner);
-
-    constructor(ENS _ens, DNSSEC _dnssec, uint256 _cooldown, uint256 _deposit) public {
-        ens = _ens;
-        oracle = _dnssec;
-        cooldown = _cooldown;
-        deposit = _deposit;
-    }
-
-    /// @notice This function allows the user to submit a DNSSEC proof for a certain amount of ETH.
-    function submit(bytes name, bytes proof, address newOwner) external payable {
-        require(msg.value == deposit);
-
-        bytes32 label;
-        bytes32 node;
-        (label, node) = DNSClaimChecker.getLabels(name);
-
-        records[keccak256(node, label)] = Record({
-            submitter: msg.sender,
-            newOwner: newOwner,
-            proof: keccak256(proof),
-            name: keccak256(name),
-            label: label,
-            node: node,
-            submitted: now
-        });
-
-        emit Submitted(keccak256(abi.encodePacked(node, label)), newOwner, proof, name);
-    }
-
-    // @notice This function commits a Record to the ENS registry.
-    function commit(bytes32 node) external {
         Record storage record = records[node];
-
-        require(record.submitted + cooldown <= now);
-
-        bytes32 rootNode = record.node;
-        bytes32 label = record.label;
-        address newOwner = record.newOwner;
-
-        require(newOwner != address(0x0));
-
-        ens.setSubnodeOwner(rootNode, label, newOwner);
-        record.submitter.transfer(deposit);
-
-        emit Claim(keccak256(abi.encodePacked(rootNode, label)), newOwner);
+        record.submitter.transfer(stake);
     }
 
-    /// @notice This function allows a user to challenge the validity of a DNSSEC proof submitted.
-    function challenge(bytes32 node, bytes proof, bytes name) external {
-        Record storage record = records[node];
-
-        require(record.submitted + cooldown > now);
-
-        require(record.proof == keccak256(proof));
-        require(record.name == keccak256(name));
-
-        require(record.newOwner != DNSClaimChecker.getOwnerAddress(oracle, record.name, record.proof));
-
-        delete records[node];
+    function challenge(bytes name, bytes proof) external {
+        AbstractRegistrar._challenge(name, proof);
     }
 }
