@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./AbstractRegistrar.sol";
+import "./RegistrarInterface.sol";
 
-contract Registrar is AbstractRegistrar {
+contract Registrar is AbstractRegistrar, RegistrarInterface {
 
     constructor(ENS ens, DNSSEC dnssec, uint256 cooldown, uint256 stake)
         public

@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./AbstractRegistrar.sol";
+import "./RegistrarInterface.sol";
 
-contract ServiceProviderRegistrar is AbstractRegistrar {
+contract ServiceProviderRegistrar is AbstractRegistrar, RegistrarInterface {
 
     struct Balance {
         uint256 staked;
@@ -32,7 +33,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         emit Unstaked(msg.sender, amount);
     }
 
-    function submit(bytes name, bytes proof, address addr) external payable {
+    function submit(bytes name, bytes proof, address addr) external {
         require(withdrawable(msg.sender) >= stake);
         balances[msg.sender].locked -= stake;
 

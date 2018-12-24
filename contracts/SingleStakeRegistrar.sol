@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./AbstractRegistrar.sol";
+import "./RegistrarInterface.sol";
 
-contract ServiceProviderRegistrar is AbstractRegistrar {
+contract ServiceProviderRegistrar is AbstractRegistrar, RegistrarInterface {
 
     mapping (address => uint256) public openSubmissions;
     mapping (address => bool) public staked;
@@ -33,7 +34,7 @@ contract ServiceProviderRegistrar is AbstractRegistrar {
         emit Unstaked(msg.sender, stake);
     }
 
-    function submit(bytes name, bytes proof, address addr) external payable {
+    function submit(bytes name, bytes proof, address addr) external {
         require(staked[msg.sender]);
 
         openSubmissions[msg.sender] += 1;
